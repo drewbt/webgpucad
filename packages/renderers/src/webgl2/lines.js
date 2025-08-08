@@ -1,4 +1,4 @@
-import { identity } from "@webgpucad/core/math/mat4.js";
+function identity(){ return [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]; }
 export class WebGL2Lines {
   static create(canvas){
     const gl = canvas.getContext('webgl2', {antialias:true, depth:true, alpha:false});
