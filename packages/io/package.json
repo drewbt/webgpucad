@@ -1,0 +1,10 @@
+{
+  "name": "@webgpucad/io",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./diz/scene-v1.js": "./dist/esm/diz/scene-v1.js",
+    "./persist/prefs.js": "./dist/esm/persist/prefs.js"
+  },
+  "license": "MPL-2.0"
+}
