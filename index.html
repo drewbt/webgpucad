@@ -1,8 +1,92 @@
-<!DOCTYPE html>
-<html>
-<d.head>
-  <meta http-equiv="refresh" content="0; url=demo/index.html">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>WebGPUCad Demo</title>
+<style>
+  html,body{height:100%;margin:0;background:#0b0d10;color:#e6edf3;font:14px/1.4 system-ui,Segoe UI,Roboto,Helvetica,Arial}
+  #ui{position:fixed;top:12px;left:12px;background:#12161a;border:1px solid #26303a;border-radius:10px;padding:10px 12px;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+  #ui h1{margin:0 0 6px;font-size:14px;font-weight:600;color:#a8c3ff}
+  #ui label{display:block;margin:6px 0 2px;color:#9fb2c8}
+  #ui input[type="number"]{width:8em;background:#0f1317;border:1px solid #2a3440;border-radius:6px;color:#e6edf3;padding:6px}
+  #ui .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  #ui .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  #log{position:fixed;bottom:10px;left:12px;font:12px ui-monospace;color:#8aa0b8;background:#11161b;border:1px solid #26303a;border-radius:8px;padding:6px 8px;opacity:.9}
+  canvas{display:block;width:100%;height:100%}
+</style>
 </head>
 <body>
+<div id="ui">
+  <h1>WebGPUCad Demo</h1>
+  <div class="row">
+    <span class="mono">L</span><input id="len" type="number" step="0.001" value="2.000" min="0.001"/>
+    <span class="mono">W</span><input id="wid" type="number" step="0.001" value="1.000" min="0.001"/>
+    <span class="mono">H</span><input id="hgt" type="number" step="0.001" value="0.750" min="0.001"/>
+    <span class="mono">Grid</span><input id="grids" type="number" step="1" value="10" min="1"/>
+    <span class="mono">Step</span><input id="gridp" type="number" step="0.001" value="0.500" min="0.001"/>
+  </div>
+</div>
+<pre id="log"></pre>
+<canvas id="gfx"></canvas>
+<script type="module">timport { identity, perspective, lookAt } from "https://cdn.jsdelivr.net/gh/drewbt/webgpucad@main/packages/core/dist/esm/math/mat4.js";
+import { makeGridLines, makeAxes } from "https://cdn.jsdelivr.net/gh/drewbt/webgpucad@main/packages/core/dist/esm/geom/grid.js";
+import { makeBoxWire } from "https://cdn.jsdelivr.net/gh/drewbt/webgpucad@main/packages/core/dist/esm/geom/box.js";
+import { OrbitCamera } from "https://cdn.jsdelivr.net/gh/drewbt/webgpucad@main/packages/core/dist/esm/camera/orbit.js";
+import { WebGL2Lines } from "https://cdn.jsdelivr.net/gh/drewbt/webgpucad@main/packages/renderers/dist/esm/webgl2/lines.js";
+import { m3, sig4 } from "https://cdn.jsdelivr.net/gh/drewbt/webgpucad@main/packages/ui/dist/esm/units/format.js";
+
+const canvas = document.getElementById('gfx');
+const ui = {
+  len: document.getElementById('len'),
+  wid: document.getElementById('wid'),
+  hgt: document.getElementById('hgt'),
+  grids: document.getElementById('grids'),
+  gridp: document.getElementById('gridp')
+};
+const logEl = document.getElementById('log');
+
+const cam = new OrbitCamera();
+cam.attach(canvas);
+const renderer = WebGL2Lines.create(canvas);
+
+function rebuild() {
+  const L = parseFloat(ui.len.value);
+  const W = parseFloat(ui.wid.value);
+  const H = parseFloat(ui.hgt.value);
+  const Gs = Math.max(1, Math.floor(parseFloat(ui.grids.value)));
+  const Gp = Math.max(0.001, parseFloat(ui.gridp.value));
+  const grid = makeGridLines(Gs, Gp);
+  const axes = makeAxes();
+  const box = makeBoxWire(L, W, H);
+  renderer.setSceneData({ grid, axes, box });
+  logEl.textContent = `Box L×W×H (m): ${m3(L)} × ${m3(W)} × ${m3(H)}\nGrid: ${Gs}   Step (m): ${m3(Gp)}\nCamera dist (m): ${sig4(cam.distance)}`;
+}
+
+['len', 'wid', 'hgt', 'grids', 'gridp'].forEach(key => {
+  ui[key].addEventListener('input', rebuild);
+});
+
+function resize() {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  renderer.resize(w, h, dpr);
+  const proj = perspective(50 * Math.PI / 180, w / h, 0.01, 10000);
+  const view = lookAt([0, 0, cam.distance], [0, 0, 0], [0, 1, 0]);
+  renderer.setProjView(proj, view);
+}
+
+window.addEventListener('resize', resize);
+
+function tick() {
+  renderer.draw(performance.now());
+  requestAnimationFrame(tick);
+}
+
+resize();
+rebuild();
+tick();
+</script>
 </body>
 </html>
