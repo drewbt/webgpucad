@@ -1,0 +1,11 @@
+{
+  "name": "@webgpucad/core",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./math/*": "./dist/esm/math/*.js",
+    "./geom/*": "./dist/esm/geom/*.js",
+    "./camera/*": "./dist/esm/camera/*.js"
+  },
+  "license": "MPL-2.0"
+}
