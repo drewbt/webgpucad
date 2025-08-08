@@ -1,0 +1,9 @@
+{
+  "name": "@webgpucad/renderers",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./webgl2/lines.js": "./dist/esm/webgl2/lines.js"
+  },
+  "license": "MPL-2.0"
+}
